@@ -1,0 +1,28 @@
+/* Mejoras de diseño v2 (se carga después de base.css) */
+:root{--r:12px;--sh:0 1px 2px rgba(16,24,40,.06),0 4px 12px rgba(16,24,40,.05)}
+*{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:linear-gradient(90deg,var(--pri2),var(--pri))}
+.card{border-radius:var(--r);box-shadow:var(--sh)}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+button{transition:filter .15s,transform .05s}button:active:not(:disabled){transform:scale(.98)}
+.tw{border-radius:10px}tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--soft) 55%,transparent)}
+th{letter-spacing:.02em;font-size:.76rem;text-transform:uppercase}th[data-k]:hover{filter:brightness(1.12)}
+.chip{display:inline-flex;align-items:center;gap:5px}
+button.chip{background:rgba(255,255,255,.14);border:0;color:#fff;cursor:pointer}button.chip:hover{background:rgba(255,255,255,.24)}
+.chip.con.ok{background:rgba(46,204,113,.28)}.chip.con.wait{background:rgba(240,177,91,.32)}.chip.con.off{background:rgba(255,99,99,.4)}
+.toast{box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:min(92vw,560px);text-align:center}
+#dlgConfirmar h2{border:0;color:var(--tx);margin-bottom:6px}#dlgConfirmar::backdrop{background:rgba(0,0,0,.58)}
+#dlgConfirmar .bd{background:var(--bad);color:#fff}#dlgConfirmar button:disabled{opacity:.45;cursor:not-allowed}
+.empty{border:1px dashed var(--line);border-radius:10px;margin:8px}
+@media(max-width:700px){
+ body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
+ .sidebar{position:fixed;left:0;right:0;bottom:0;z-index:60;gap:0}
+ .sidebar-group{border-radius:0;border-width:1px 0 0;padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 14px rgba(0,0,0,.12)}
+ .tabs{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible}
+ .tab{flex-direction:column;gap:2px;padding:6px 4px;font-size:.72rem;text-align:center;min-height:54px}
+ .tab-icon{background:transparent!important;width:auto;height:auto;font-size:1.25rem}.tab.on .tab-icon{color:inherit}
+ .tab.on{background:var(--soft);color:var(--pri)}
+ .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+ #sPanel .sur-actions{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}

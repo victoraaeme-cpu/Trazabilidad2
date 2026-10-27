@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12308f">
+<title>Trazabilidad de Material · QR</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/mejoras.css">
+<script src="js/vendor/qrcode.js"></script>
+</head>
+<body>
+<div id="login"><div class="lgbox"><h2>📦 Trazabilidad de Material</h2>
+  <div id="lgCarga" class="empty">Cargando…</div>
+  <form id="lgF" hidden>
+    <div id="lgMsg" class="res bad" hidden></div>
+    <label for="lgMail">Correo</label><input type="email" id="lgMail" required autocomplete="username">
+    <label for="lgPass" style="margin-top:10px">Contraseña</label><input type="password" id="lgPass" required autocomplete="current-password">
+    <div class="acts"><button type="submit" class="bp" id="lgBtn">Entrar</button></div>
+  </form></div></div>
+<header>
+  <h1>📦 Trazabilidad de Material · Generador QR</h1>
+  <div class="chips"><span class="chip" id="sTot">0 registros</span><span class="chip" id="sMp">0 materia prima</span><span class="chip" id="sConsumibles">0 consumibles</span><span class="chip" id="sGen">0 generales</span><span class="chip con wait" id="conEstado" role="status" aria-live="polite">● Conectando…</span><span class="chip" id="rolUsuario" hidden></span><button type="button" class="chip" id="bTema" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">◐ Tema</button><button type="button" class="chip" id="bSalir" style="border:0;color:#fff;cursor:pointer" title="Cerrar sesión">⏻ Salir</button></div>
+</header>
+
+<div class="app-layout">
+<aside class="sidebar" aria-label="Navegación principal">
+  <div class="sidebar-group">
+    <div class="sidebar-label">OPERACIÓN</div>
+    <nav class="tabs" aria-label="Módulos">
+      <button type="button" class="tab on" data-v="vReg" aria-current="page"><span class="tab-icon" aria-hidden="true">📝</span><span class="tab-copy"><strong>Registro</strong><small>Alta y consulta</small></span></button>
+      <button type="button" class="tab" data-v="vSur"><span class="tab-icon" aria-hidden="true">📤</span><span class="tab-copy"><strong>Surtido</strong><small>Salida a producción</small></span></button>
+      <button type="button" class="tab" data-v="vInv"><span class="tab-icon" aria-hidden="true">📦</span><span class="tab-copy"><strong>Inventario</strong><small>Existencias y ubicaciones</small></span></button>
+    </nav>
+  </div>
+  <div class="sidebar-note"><strong>Flujo de trabajo</strong>Registra materiales, prepara surtidos para producción y consulta o asigna existencias por ubicación.</div>
+</aside>
+<div class="app-content">
+<main id="vReg" aria-label="Registro">
+<div class="view-heading"><div><span class="view-kicker">Módulo 01 · Catálogo</span><h2>Registro de materiales</h2><p>Da de alta materiales y consulta su historial, ficha y código QR.</p></div><span class="chip">Catálogo y etiquetas</span></div>
+<nav class="section-nav" aria-label="Pantallas de Registro">
+  <button type="button" class="section-tab" data-module="vReg" data-page="captura" aria-current="page">✍️ <strong>Capturar material</strong></button>
+  <button type="button" class="section-tab" data-module="vReg" data-page="historial">📋 <strong>Historial</strong></button>
+</nav>
+<div>
+  <div class="section-title" data-module-screen="captura"><div><h3>Alta de material</h3><p>Completa los datos de identificación, dimensiones y existencia.</p></div></div>
+  <section class="card section-content" data-module-screen="captura">
+    <h2 id="tituloForm" class="form-toggle" role="button" tabindex="0" aria-controls="f" aria-expanded="false">Registro de material</h2>
+    <div class="acts"><button type="button" class="bp" id="bCamReg">📷 Escanear código y ver información</button></div>
+    <div class="res bad" id="regCamAviso" hidden>⚠ El escáner con cámara requiere HTTPS (o localhost).</div>
+    <p id="registroAdminAviso" class="res bad" hidden>Solo el administrador puede registrar o editar materiales.</p>
+    <form id="f" autocomplete="off" hidden>
+      <input type="hidden" id="editIndex">
+      <div class="grid">
+        <div><label for="ubicacion">Ubicación *</label><input type="text" id="ubicacion" list="ubicacionesDatalist" required autocomplete="off"><datalist id="ubicacionesDatalist"></datalist></div>
+        <div><label for="codigo">Código *</label><div class="row"><input type="text" id="codigo" required placeholder="MAT-0001"><button type="button" class="bs" id="btnAuto" title="Siguiente código">Auto</button></div></div>
+        <div><label for="tipoRegistro">Clasificación *</label><select id="tipoRegistro" required><option value="">Seleccione…</option><option value="GENERAL">Material general</option><option value="MP">Materia prima</option><option value="CONSUMIBLES">Consumibles</option></select></div>
+        <div><label for="descripcion">Descripción *</label><input type="text" id="descripcion" required></div>
+        <div><label for="fechaRecibo">Fecha de recibo *</label><input type="date" id="fechaRecibo" required></div>
+        <div><label for="cantidad">Cantidad (PZ) *</label><input type="number" id="cantidad" min="0" step="any" required></div>
+        <input type="hidden" id="um" value="PZ">
+        <div class="na-field"><div class="na-head"><label for="peso">Peso</label><label class="na-check"><input type="checkbox" data-na="peso"> No aplica</label></div><div class="na-value-wrap row"><input class="na-value" id="peso" type="number" min="0" step="any"><select id="pesoU" aria-label="Unidad de peso"><option value="LB">LB</option><option value="KG">KG</option><option value="">Sin unidad</option></select></div></div>
+        <details id="detTraza" class="full">
+          <summary>Datos de trazabilidad (opcional)</summary>
+          <div class="grid">
+            <div class="na-field"><div class="na-head"><label for="tipoMaterial">Tipo material</label><label class="na-check"><input type="checkbox" data-na="tipoMaterial"> No aplica</label></div><input class="na-value" id="tipoMaterial" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="especificacionMedida">Especificación medida</label><label class="na-check"><input type="checkbox" data-na="especificacionMedida"> No aplica</label></div><input class="na-value" id="especificacionMedida" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="seccionMaterial">Sección</label><label class="na-check"><input type="checkbox" data-na="seccionMaterial"> No aplica</label></div><select class="na-value" id="seccionMaterial"><option value="">Sin especificar</option><option value="SQ">SQ · Barra cuadrada</option><option value="FLAT">FLAT</option><option value="RND">RND · Redonda</option></select></div>
+            <div id="dimensionesLineales" hidden><label>Dimensiones de la sección (mm)</label><div class="row"><input type="number" id="altoMaterial" min="0" step="any" placeholder="Alto (mm)" aria-label="Alto en milímetros"><input type="number" id="anchoMaterial" min="0" step="any" placeholder="Ancho (mm)" aria-label="Ancho en milímetros"></div></div>
+            <div id="dimensionRedonda" hidden><label for="diametroMaterial">Diámetro (mm)</label><input type="number" id="diametroMaterial" min="0" step="any"></div>
+            <div class="na-field"><div class="na-head"><label for="longitudIndividual">Longitud IND (mm)</label><label class="na-check"><input type="checkbox" data-na="longitudIndividual"> No aplica</label></div><input class="na-value" id="longitudIndividual" type="number" min="0" step="any"></div>
+            <div class="na-field"><div class="na-head"><label for="manufactura">Manufactura</label><label class="na-check"><input type="checkbox" data-na="manufactura"> No aplica</label></div><input class="na-value" id="manufactura" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="numeroHeat">N.º Heat</label><label class="na-check"><input type="checkbox" data-na="numeroHeat"> No aplica</label></div><input class="na-value" id="numeroHeat" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="numeroLoteMP">N.º lote MP</label><label class="na-check"><input type="checkbox" data-na="numeroLoteMP"> No aplica</label></div><input class="na-value" id="numeroLoteMP" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="numeroCertificado">N.º cert.</label><label class="na-check"><input type="checkbox" data-na="numeroCertificado"> No aplica</label></div><input class="na-value" id="numeroCertificado" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="totalMM">Total mm (auto)</label><label class="na-check"><input type="checkbox" data-na="totalMM"> No aplica</label></div><input class="na-value" id="totalMM" type="number" min="0" step="any" readonly></div>
+            <div class="na-field"><div class="na-head"><label for="ordenMaterial">Orden</label><label class="na-check"><input type="checkbox" data-na="ordenMaterial"> No aplica</label></div><input class="na-value" id="ordenMaterial" type="text"></div>
+            <div class="na-field"><div class="na-head"><label for="poNumber">PO number</label><label class="na-check"><input type="checkbox" data-na="poNumber"> No aplica</label></div><input class="na-value" id="poNumber" type="text"></div>
+          </div>
+        </details>
+      </div>
+      <div class="acts">
+        <button type="submit" class="bp" id="btnGuardar" hidden>💾 Guardar y generar QR</button>
+        <button type="button" class="bd" id="btnCancelar" hidden>✖ Cancelar edición</button>
+      </div>
+    </form>
+  </section>
+
+  <div class="section-title" data-module-screen="historial" hidden><div><h3>Materiales registrados</h3><p>Busca y exporta el catálogo. La edición y eliminación están reservadas al administrador.</p></div></div>
+  <section class="card section-content" data-module-screen="historial" hidden>
+    <h2>Historial</h2>
+    <div class="tools">
+      <input type="search" id="buscar" placeholder="🔍 Buscar código, descripción, lote, ubicación…">
+      <select id="ftipo"><option value="">Todos</option><option value="mp">Materia prima</option><option value="consumibles">Consumibles</option><option value="gen">General</option></select>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th><input type="checkbox" class="row-select" id="selectAll" aria-label="Seleccionar todos los resultados visibles" title="Seleccionar todos los resultados visibles"></th><th data-k="codigo">Código ⇅</th><th data-k="descripcion">Descripción ⇅</th><th data-k="cantidad">Ctd. / Existencia</th><th>Tipo</th><th data-k="ubicacion">Ubicación ⇅</th><th data-k="fechaRecibo">Recibo ⇅</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody"></tbody></table>
+      <div class="empty" id="vacio" hidden>Sin resultados</div></div>
+    <div class="acts" style="align-items:center">
+      <span id="seleccionInfo" style="font-size:.84rem;color:var(--mut);align-self:center">0 seleccionados</span>
+      <button type="button" class="bd" id="bDelSel" disabled>🗑️ Eliminar seleccionados</button>
+      <button type="button" class="bd" id="bDelAll" disabled>🗑️ Eliminar todos</button>
+    </div>
+    <div class="acts">
+      <button type="button" class="bs" id="bJson" hidden>⬇️ JSON</button>
+      <button type="button" class="bs" id="bCsv" hidden>⬇️ CSV (Excel)</button>
+      <button type="button" class="bs" id="bImp" hidden>⬆️ Importar JSON</button>
+      <button type="button" class="bs" id="bExcel" hidden>📊 Importar Excel</button>
+      <input type="file" id="fileImp" accept=".json,application/json" hidden>
+      <input type="file" id="fileExcel" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+  </section>
+</div>
+
+<div class="section-title" data-module-screen="qr" hidden><div><h3>Etiquetas e identificación</h3><p>Selecciona un material del historial para preparar su etiqueta.</p></div></div>
+<section class="card sticky section-content" data-module-screen="qr" hidden>
+  <h2>Identificación QR</h2>
+  <div id="qrBox">Guarde o seleccione un material para generar su QR</div>
+  <div id="ficha" style="margin-top:12px"></div>
+  <label style="display:flex;gap:8px;align-items:center;color:var(--tx);font-weight:500;margin-top:12px"><input type="checkbox" id="qrCompacto" style="width:auto"> QR compacto (solo el código; la ficha se consulta en línea y siempre muestra lo actual)</label>
+  <div class="acts">
+    <button type="button" class="bp" id="bPrint" disabled>🖨️ Imprimir etiqueta</button>
+    <button type="button" class="bs" id="bPng" disabled>🖼️ Descargar PNG</button>
+  </div>
+  <div id="piezasBox" hidden style="margin-top:12px">
+    <div class="res" id="piezasInfo"></div>
+    <details id="pzDet"><summary style="cursor:pointer;font-size:.84rem;color:var(--mut);padding:4px 0">👁 Ver QR individuales</summary><div id="pzGrid"></div></details>
+    <div class="acts"><button type="button" class="bs" id="bPrintPz">🖨️ Imprimir piezas</button><button type="button" class="bs" id="bPrintAll">🖨️ Master + piezas</button><button type="button" class="bs" id="bPngPz">⬇️ PNG de piezas (ZIP)</button></div>
+  </div>
+  <p style="font-size:.74rem;color:var(--mut);margin-top:10px">Al escanear el QR con la cámara del celular se abre la ficha de trazabilidad en una página, con opción de guardarla como PDF.</p>
+</section>
+</main>
+
+<main id="vSur" aria-label="Surtido" hidden>
+<div class="view-heading"><div><span class="view-kicker">Módulo 02 · Producción</span><h2>Surtido de materiales</h2><p>Prepara salidas por orden de producción y conserva el historial de cada movimiento.</p></div><span class="chip">Salidas y movimientos</span></div>
+<nav class="section-nav" aria-label="Pantallas de Surtido">
+  <button type="button" class="section-tab" data-module="vSur" data-page="preparar" aria-current="page">📤 <strong>Preparar salida</strong></button>
+  <button type="button" class="section-tab" data-module="vSur" data-page="historial">📋 <strong>Historial de salidas</strong></button>
+</nav>
+<div id="surPreparar" data-module-screen="preparar">
+  <section class="card"><h2>Surtido</h2>
+    <div class="sur-controls">
+      <div class="acts"><button type="button" class="bp" id="bCam">📷 Escanear con cámara</button></div>
+      <div class="sur-order"><label for="orden">Orden de producción *</label><input type="text" id="orden" placeholder="Ej. OT-1234"></div>
+      <details id="manual"><summary style="cursor:pointer;font-size:.84rem;color:var(--mut);padding:4px 0">⌨️ Pistola lectora / código manual</summary>
+        <textarea id="scanIn" rows="2" placeholder="Escanee aquí, o escriba el código y presione Enter"></textarea></details>
+    </div>
+    <div class="res bad" id="camAviso" hidden>⚠ La cámara en vivo requiere HTTPS (o localhost). Aloje este archivo en un sitio con HTTPS para usar el escáner.</div>
+    <div class="grid sur-fields">
+      <div><label for="entrega">Entrega (Almacén)</label><input type="text" id="entrega"></div>
+      <div><label for="recibe">Recibe (Producción)</label><input type="text" id="recibe"></div>
+      <div><label for="maquina">Máquina / línea</label><input type="text" id="maquina"></div>
+      <div><label for="motivo">Motivo / uso</label><input type="text" id="motivo"></div>
+      <details class="full"><summary>Observaciones</summary><label for="observaciones" hidden>Observaciones</label><textarea id="observaciones" rows="2"></textarea></details>
+    </div>
+    <div id="sPanel"></div>
+  </section>
+</div>
+<section class="card section-content" id="surHistorial" data-module-screen="historial" hidden><h2>Movimientos de surtido</h2>
+  <div class="tw"><div id="hBody" class="sur-groups"></div><div class="empty" id="hVacio">Sin surtidos</div></div>
+  <div class="acts"><button type="button" class="bs" id="bCsvS" hidden>⬇️ CSV de surtidos</button></div>
+</section>
+</main>
+
+<main id="vInv" aria-label="Inventario" hidden>
+  <div class="view-heading"><div><span class="view-kicker">Módulo 03 · Almacén</span><h2>Control de inventario</h2><p>Consulta existencias, administra ubicaciones y mueve materiales con trazabilidad.</p></div><span class="chip">Existencias y ubicaciones</span></div>
+  <nav class="section-nav" aria-label="Pantallas de Inventario">
+    <button type="button" class="section-tab" data-module="vInv" data-page="existencias" aria-current="page">📦 <strong>Existencias</strong></button>
+    <button type="button" class="section-tab" data-module="vInv" data-page="almacenes">🏭 <strong>Almacenes y ubicaciones</strong></button>
+    <button type="button" class="section-tab" data-module="vInv" data-page="asignar">🔄 <strong>Traspasos y movimientos</strong></button>
+  </nav>
+  <section class="card section-content" data-module-screen="existencias">
+    <h2>Inventario de materiales</h2>
+    <p style="color:var(--mut);margin-bottom:14px">Consulta existencias disponibles, filtra por almacén y escanea una ubicación para ver qué materiales tiene asignados.</p>
+    <div class="res bad" id="conteoEstado" hidden></div>
+    <div class="acts" style="margin:0 0 12px;flex-wrap:wrap">
+      <button type="button" class="bp" id="bCamUbiConsulta">📷 Escanear ubicación para ver materiales</button>
+    </div>
+    <div id="ubiConsultaBox" class="card" style="margin:0 0 8px;padding:8px 12px" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><b>Ubicación consultada:</b> <span id="ubiConsultaInfo">-</span></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="color:var(--mut)" id="ubiConsultaCnt">0 materiales</span>
+          <button type="button" class="bs" id="bUbiConsultaLimpiar" hidden title="Limpiar consulta" aria-label="Limpiar consulta">✕</button>
+        </div>
+      </div>
+      <div id="ubiConsultaBusqueda" style="margin-top:8px" hidden>
+        <label for="ubiConsultaBuscar">Buscar material registrado por código o descripción</label>
+        <input type="search" id="ubiConsultaBuscar" placeholder="Escribe un código o parte de la descripción…" autocomplete="off">
+        <div id="ubiConsultaResultados" class="ubicacion-material-list" aria-live="polite"></div>
+      </div>
+      <details open style="margin-top:8px">
+        <summary style="cursor:pointer;font-size:.86rem;color:var(--mut)">Materiales en la ubicación</summary>
+        <div class="tw" style="margin-top:8px">
+          <table>
+            <thead><tr><th>Código</th><th>Descripción</th><th>Clasificación</th><th>Existencia disponible</th><th>Almacén</th><th>Conteo cíclico</th></tr></thead>
+            <tbody id="ubiConsultaBody"></tbody>
+          </table>
+          <div class="empty" id="ubiConsultaVacio" hidden>Esta ubicación no tiene materiales asignados.</div>
+        </div>
+      </details>
+    </div>
+    <div class="tools">
+      <input type="search" id="invBuscar" placeholder="🔍 Buscar código, descripción o ubicación…">
+      <select id="invTipo"><option value="">Todas las clasificaciones</option><option value="mp">Materia prima</option><option value="consumibles">Consumibles</option><option value="gen">General</option></select>
+      <select id="invAlmacen" aria-label="Filtrar por almacén"><option value="">Todos los almacenes</option></select>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Código</th><th>Descripción</th><th>Existencia disponible</th><th>Almacén › Ubicación</th></tr></thead>
+      <tbody id="invBody"></tbody>
+    </table><div class="empty" id="invVacio" hidden>Sin materiales que coincidan.</div></div>
+  </section>
+  <section class="card section-content" data-module-screen="almacenes" hidden>
+    <h2>Almacenes</h2>
+    <p style="color:var(--mut);margin-bottom:14px">Crea almacenes con nombre libre y una clasificación opcional. Cada rack o estante se registra dentro de uno de ellos.</p>
+    <form id="almacenForm" class="grid" autocomplete="off">
+      <div><label for="almacenCodigo">Código de almacén *</label><div class="row"><input id="almacenCodigo" required placeholder="ALM-001"><button type="button" class="bs" id="almacenAuto">Auto</button></div></div>
+      <div><label for="almacenNombre">Nombre del almacén *</label><input id="almacenNombre" required placeholder="Ej. Rack de materia prima"></div>
+      <div><label for="almacenTipo">Clasificación</label><select id="almacenTipo"><option value="">Sin clasificación</option><option value="MP">Materia prima</option><option value="GENERAL">Material general</option><option value="CONSUMIBLES">Consumibles</option><option value="OTRO">Otro</option></select></div>
+      <div class="full"><button type="submit" class="bp" id="almacenGuardar">Guardar almacén</button></div>
+    </form>
+    <div id="almacenEstado"></div>
+    <div id="almacenLista" class="ubicaciones-list"></div>
+  </section>
+  <section class="card section-content" data-module-screen="ubicaciones" hidden>
+    <h2>Ubicaciones y códigos QR</h2>
+    <div id="ubiEstado"></div>
+    <div class="acts"><button type="button" class="bs" id="bUbiExportar" hidden>⬇️ Exportar todos los QR (ZIP)</button></div>
+    <form id="ubiForm" class="grid" autocomplete="off">
+      <div><label for="ubiAlmacen">Almacén *</label><select id="ubiAlmacen" required></select></div>
+      <div><label for="ubiCodigo">Código de ubicación *</label><div class="row"><input id="ubiCodigo" required placeholder="UBI-001"><button type="button" class="bs" id="ubiAuto">Auto</button></div></div>
+      <div class="full"><button type="submit" class="bp" id="ubiGuardar">Guardar ubicación</button></div>
+    </form>
+    <details id="ubicacionesImportar" hidden>
+      <summary>Importar ubicaciones (Excel / JSON)</summary>
+      <div class="acts" style="margin-top:12px;flex-wrap:wrap">
+        <button type="button" class="bs" id="bUbiExcel">📥 Importar ubicaciones (Excel)</button>
+        <button type="button" class="bs" id="bUbiJson">📥 Importar ubicaciones (JSON)</button>
+        <input type="file" id="fileUbiExcel" accept=".xlsx,.xls,.csv" hidden>
+        <input type="file" id="fileUbiJson" accept=".json,application/json" hidden>
+      </div>
+      <p class="ubicaciones-ayuda">Formato Excel/CSV: columnas <b>codigo</b> o <b>ubicacion</b> y <b>almacen_codigo</b> o <b>almacen</b>. En JSON: <code>[{"codigo":"UBI-001","almacen_codigo":"ALM-MP"}]</code>. Los códigos duplicados se omiten.</p>
+    </details>
+    <p class="ubicaciones-ayuda">Selecciona una ubicación para desplegar su código QR y las opciones para descargarlo o imprimirlo.</p>
+    <div id="ubiLista"></div>
+  </section>
+  <section class="card section-content" data-module-screen="asignar" hidden>
+    <h2>Traspaso entre ubicaciones</h2>
+    <p style="color:var(--mut)">Escanea el QR de la ubicación destino y después los QR de los materiales. El origen se registra automáticamente y el historial del traspaso se conserva.</p>
+    <div class="acts"><button type="button" class="bp" id="bCamInv">📷 Escanear ubicación y materiales</button></div>
+    <div class="res bad" id="invCamAviso" hidden>⚠ El escáner con cámara requiere HTTPS (o localhost).</div>
+    <label for="ubiScan">Lector QR / código manual</label>
+    <textarea id="ubiScan" rows="2" placeholder="Escanea la ubicación destino; después cada material"></textarea>
+    <div class="d"><b>Ubicación destino</b><span id="ubiDestino">Sin seleccionar</span></div>
+    <div id="asigLista" class="asig-items"></div>
+    <div class="acts"><button type="button" class="bp" id="ubiConfirmar" disabled>✅ Confirmar traspaso</button><button type="button" class="bd" id="ubiLimpiar">Limpiar</button></div>
+  </section>
+  <section class="card section-content" data-module-screen="historial" hidden>
+    <h2>Historial de ubicaciones</h2>
+    <div id="ubiHistEstado"></div>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Folio</th><th>Código</th><th>Almacén anterior</th><th>Desde</th><th>Almacén destino</th><th>Hacia</th><th>Existencia al mover</th></tr></thead><tbody id="ubiHistBody"></tbody></table><div class="empty" id="ubiHistVacio" hidden>Sin movimientos de ubicación.</div></div>
+    <h2 style="margin-top:20px">Historial de conteos cíclicos</h2>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Material</th><th>Ubicación</th><th>Existencia anterior</th><th>Existencia contada</th><th>Ajuste</th><th>Observaciones</th><th>Administrador</th></tr></thead><tbody id="conteoHistBody"></tbody></table><div class="empty" id="conteoHistVacio" hidden>Sin conteos cíclicos.</div></div>
+  </section>
+</main>
+
+</div>
+</div>
+<div id="fichaView" hidden>
+  <div class="fh"><div class="fb">📦 Trazabilidad de material</div><div id="fCod"></div></div>
+  <div class="fbody">
+    <div id="fDatos"></div>
+    <p id="fNota"></p>
+    <div class="acts noprint"><button type="button" class="bp" id="fPdf">📄 Guardar como PDF / Imprimir</button><button type="button" class="bs" id="fSur" hidden>📤 Ir a surtido</button><button type="button" class="bs" id="fApp">🏠 Abrir aplicación</button></div>
+  </div>
+</div>
+<div id="salidaView" hidden></div>
+<div id="camWrap" hidden><div id="camPanel"><video id="video" playsinline muted></video><div class="vf"></div><button type="button" class="bs" id="bTorch" hidden>🔦</button><button type="button" class="bd" id="bCamClose">✕ Cerrar</button><canvas id="camCv" hidden></canvas></div></div>
+<div id="etiqueta"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlgConfirmar" class="conteo-dialog" aria-labelledby="dlgTitulo"><h2 id="dlgTitulo"></h2><p id="dlgMsg" style="white-space:pre-line;margin:8px 0 12px"></p><div id="dlgEscribirWrap" hidden><label id="dlgEscribirLbl" for="dlgTexto"></label><input id="dlgTexto" autocomplete="off"></div><div class="acts"><button type="button" class="bs" id="dlgNo">Cancelar</button><button type="button" class="bp" id="dlgOk">Confirmar</button></div></dialog>
+<dialog id="conteoDialog" class="conteo-dialog" aria-labelledby="conteoTitulo">
+  <h2 id="conteoTitulo">Conteo cíclico</h2>
+  <p id="conteoMaterial"></p>
+  <p><b>Existencia actual:</b> <span id="conteoActual"></span></p>
+  <form id="conteoForm">
+    <input type="hidden" id="conteoCodigo">
+    <input type="hidden" id="conteoUbicacion">
+    <input type="hidden" id="conteoAnterior">
+    <label for="conteoCantidad">Existencia contada (<span id="conteoUnidad"></span>) *</label>
+    <input type="number" id="conteoCantidad" min="0" step="any" inputmode="decimal" required>
+    <label for="conteoMotivo" style="margin-top:12px">Observaciones</label>
+    <textarea id="conteoMotivo" rows="2" maxlength="300" placeholder="Opcional"></textarea>
+    <div class="acts"><button type="button" class="bs" id="conteoCancelar">Cancelar</button><button type="submit" class="bp" id="conteoGuardar">Guardar conteo</button></div>
+  </form>
+</dialog>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
